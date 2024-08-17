@@ -1,3 +1,4 @@
+
 <?php
 
 class Responsable extends Persona{
@@ -36,11 +37,10 @@ class Responsable extends Persona{
         $this->mensajeOperacion = $mensajeOperacion;
     }
 
-       public function Cargar ($numEmpleado, $numLicencia, $nombre, $apellido) {
+       public function Setear($numEmpleado, $numLicencia, $nombre, $apellido) {
          $this->setNumEmpleado($numEmpleado);
          $this->setNumLicencia($numLicencia);
-         $this->setNombre($nombre);
-         $this->setApellido($apellido);
+         parent::Cargar($nombre, $apellido, "");
        }
     
         /**
@@ -49,23 +49,26 @@ class Responsable extends Persona{
         */   
        public function Insertar (){
         $baseDatos = new BaseDatos();
-        $resp = false;
-        $nroLicencia = $this->getNumLicencia();
-        $nombreR = $this->getNombre();
-        $apellidoR = $this->getApellido();
+        $funInsertar = parent::Insertar();
+        $numEmp = $this->getNumEmpleado();
+        $numLic = $this->getNumLicencia();
+        $resp= false;
     
-        $consultaInsertar = "INSERT INTO responsable(numLicencia, nombre, apellido)
-                            VALUES ('$nroLicencia', '$nombreR', '$apellidoR')";
-        if ($baseDatos->Iniciar()) {
-            if ($baseDatos->Ejecutar($consultaInsertar)) {
-                $resp = true;
+        if ($funInsertar) {
+            $consultaInsertarR = "INSERT INTO responsable (numEmpleado, numLicencia) VALUES ('$numEmp', '$numLic')";
+            if ($baseDatos->Iniciar()) {
+                if ($baseDatos->Ejecutar($consultaInsertarR)) {
+                    $resp = true;
+                    } else {
+                    $this->setMensajeOperacion($baseDatos->getError());
+                    }
             } else {
                 $this->setMensajeOperacion($baseDatos->getError());
-            }
-        } else {
-            $this->setMensajeOperacion($baseDatos->getError());
+            } 
         }
+    
         return $resp;
+
         }
     
         /**
@@ -91,9 +94,10 @@ class Responsable extends Persona{
                         $numLicencia = $row2 ['numLicencia'];
                         $nombre = $row2 ['nombre'];
                         $apellido = $row2 ['apellido'];
+
     
                         $objResponsable = new Responsable();
-                        $objResponsable->Cargar($numEmpleado, $numLicencia, $nombre, $apellido);
+                        $objResponsable->Setear($numEmpleado, $numLicencia, $nombre, $apellido);
                         array_push($arrayResponsables, $objResponsable);
                     }
                 } else {
@@ -118,8 +122,7 @@ class Responsable extends Persona{
             if ($baseDatos->Iniciar()) {
                 if ($baseDatos->Ejecutar($consultaResponsables)) {
                     if ($row2 = $baseDatos->Registro()) {
-
-                        $this->Cargar($nroEmpleado, $row2 ['numLicencia'], $row2 ['nombre'], $row2 ['apellido']);
+                        $this->Setear($nroEmpleado, $row2 ['numLicencia'], $row2 ['nombre'], $row2 ['apellido']);
                         $resp = true;
                     }
                 } else {
@@ -139,17 +142,22 @@ class Responsable extends Persona{
         public function Modificar () { 
             $resp = false;
             $baseDatos = new BaseDatos();
-            $consultaModificar = "UPDATE responsable SET numLicencia='".$this->getNumLicencia()."',nombre='".$this->getNombre()."',apellido='".$this->getApellido().
-                                "' WHERE numEmpleado=". $this->getNumEmpleado();
-            if ($baseDatos->Iniciar()) {
-                if ($baseDatos->Ejecutar($consultaModificar)) {
-                    $resp = true;
+            /*$funMod = parent::Modificar();--- Saque el parent ya que la funcion Modificar en Persona busca por DNI y en la clase Responsable
+            se busca por numEmpleado */
+            
+            //if($funMod){
+                $consultaModificar = "UPDATE responsable SET numLicencia='".$this->getNumLicencia()."' WHERE numEmpleado=". $this->getNumEmpleado();
+                if ($baseDatos->Iniciar()) {
+                    if ($baseDatos->Ejecutar($consultaModificar)) {
+                        $resp = true;
+                    } else {
+                        $this->setMensajeOperacion($baseDatos->getError());
+                    }
                 } else {
                     $this->setMensajeOperacion($baseDatos->getError());
                 }
-            } else {
-                $this->setMensajeOperacion($baseDatos->getError());
-            }
+            //}
+            
                         
             return $resp;
         }
@@ -162,10 +170,17 @@ class Responsable extends Persona{
             $resp = false;
             $baseDatos = new BaseDatos();
             $nroE = $this->getNumEmpleado();
+            /*$funEliminar = parent::eliminar();--- Saque el parent ya que la funcion Eliminar en Persona busca por DNI y en la clase Responsable
+            se busca por numEmpleado
+            */
+
             if ($baseDatos->Iniciar()) {
-                $consultaBorrar ="DELETE FROM responsable WHERE numEmpleado=$nroE";
+                $consultaBorrar ="DELETE FROM responsable WHERE numEmpleado = $nroE";
                 if ($baseDatos->Ejecutar($consultaBorrar)) {
-                    $resp = true;
+                    //if($funEliminar){
+                        $resp=  true;
+                    //}
+
                 } else {
                     $this->setMensajeOperacion($baseDatos->getError());
                 }
@@ -178,10 +193,10 @@ class Responsable extends Persona{
     
         public function __toString()
         {
-            return "\n Numero de empleado: " . $this->getNumEmpleado().
-            "\n Numero de licencia: " . $this->getNumLicencia().
-            "\n Nombre: " . $this->getNombre().
-            "\n Apellido: " . $this->getApellido();
+            return 
+            "\n Numero de empleado: " . $this->getNumEmpleado().
+            "\n Numero de licencia: " . $this->getNumLicencia(). "\n".
+            parent::__toString();
         }
     
     
