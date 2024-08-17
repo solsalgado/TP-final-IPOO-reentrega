@@ -3,8 +3,6 @@
 class Pasajero extends Persona{
    private $telefono;
    private $objViaje;
-   private $mensajeOperacion;
-
    
    public function __construct() {
     parent::__construct();
@@ -20,10 +18,6 @@ class Pasajero extends Persona{
         return $this->objViaje;
    }
 
-   public function getMensajeOperacion () {
-        return $this->mensajeOperacion;
-   }
-
    public function setTelefono($telefono){
         $this->telefono = $telefono;
    }
@@ -32,16 +26,9 @@ class Pasajero extends Persona{
         $this->objViaje = $objViaje;
    }
 
-   public function setMensajeOperacion ($mensajeOperacion) {
-        $this->mensajeOperacion = $mensajeOperacion;
-   }
 
-
-
-   public function Cargar ($nombre, $apellido, $numDocumento, $telefono, $objViaje) {
-     $this->setNombre($nombre);
-     $this->setApellido($apellido);
-     $this->setDni($numDocumento);     
+   public function Setear($nombre, $apellido, $numDocumento, $telefono, $objViaje){
+     parent::Cargar($nombre, $apellido, $numDocumento);
      $this->setTelefono($telefono);
      $this->setObjViaje($objViaje);
    }
@@ -52,25 +39,26 @@ class Pasajero extends Persona{
      */
    public function Insertar(){
     $baseDatos = new BaseDatos();
-    $resp = false;
-    $pNombre = $this->getNombre();
-    $pApellido = $this->getApellido();
-    $doc = $this->getDni();    
+    $funInsertar = parent::Insertar();
     $pTelefono = $this->getTelefono();
     $id = $this->getObjViaje();
+    $resp= false;
 
-    $consultaInsertar = "INSERT INTO pasajero(nombre, apellido, numDocumento, telefono, idviaje)
-                        VALUES ('$pNombre', '$pApellido', '$doc', '$pTelefono', '$id')";
-    if ($baseDatos->Iniciar()) {
-        if ($baseDatos->Ejecutar($consultaInsertar)) {
-            $resp = true;
+    if ($funInsertar) {
+        $consultaInsertarP = "INSERT INTO pasajero (telefono, idviaje) VALUES ('$pTelefono', '$id')";
+        if ($baseDatos->Iniciar()) {
+            if ($baseDatos->Ejecutar($consultaInsertarP)) {
+                $resp = true;
+                } else {
+                $this->setMensajeOperacion($baseDatos->getError());
+                }
         } else {
             $this->setMensajeOperacion($baseDatos->getError());
-        }
-    } else {
-        $this->setMensajeOperacion($baseDatos->getError());
+        } 
     }
+
     return $resp;
+
     }
 
     /**
@@ -92,15 +80,15 @@ class Pasajero extends Persona{
         if ($baseDatos->Iniciar()) {
             if ($baseDatos->Ejecutar($consultaPasajeros)) {
                 $arrayPasajeros = [];
-                while ($row2 = $baseDatos->Registro()) {
+                while ($row2 = $baseDatos->Registro()) {     
                     $nombre = $row2 ['nombre'];
-                    $apellido = $row2 ['apellido'];
-                    $documento = $row2 ['numDocumento'];                    
+                    $apellido = $row2 ['apellido'];                      
+                    $nroDoc = $row2['numDocumento'];                            
                     $telefono = $row2 ['telefono'];
                     $idviaje = $row2 ['idviaje'];
 
                     $objPasajero = new Pasajero();
-                    $objPasajero->Cargar( $nombre, $apellido, $documento, $telefono, $idviaje);
+                    $objPasajero->Setear($nombre, $apellido, $nroDoc, $telefono, $idviaje);
                     array_push($arrayPasajeros, $objPasajero);
                 }
             } else {
@@ -125,9 +113,9 @@ class Pasajero extends Persona{
         if ($baseDatos->Iniciar()) {
             if ($baseDatos->Ejecutar($consultaPasajeros)) {
                 if ($row2 = $baseDatos->Registro()) {
-                    
-                    $this->Cargar($row2 ['nombre'], $row2 ['apellido'], $dni, $row2 ['telefono'], $row2 ['idviaje']);
-
+                    parent::Buscar($dni);
+                    $this->setTelefono($row2 ['telefono']);
+                    $this->setObjViaje($row2 ['idviaje']);
                     $resp = true;
                 }
             } else {
@@ -140,16 +128,18 @@ class Pasajero extends Persona{
         return $resp;
     }
 
-/**
-        * funcion modificar
-        * @return boolean
-        */   
-        public function Modificar() { 
-            $resp = false;
-            $baseDatos = new BaseDatos();
-            $dni = $this->getDni();
-            $consultaModificar = "UPDATE pasajero SET nombre='".$this->getNombre()."',apellido='".$this->getApellido()."',telefono='".
-                                $this->getTelefono()."',idviaje='". $this->getObjViaje()."' WHERE numDocumento= $dni";
+    /**
+    * funcion modificar
+    * @return boolean
+    */   
+    public function Modificar() { 
+        $resp = false;
+        $baseDatos = new BaseDatos();
+        $funMod = parent::Modificar();
+        $dni = $this->getDni();
+
+        if($funMod){
+            $consultaModificar = "UPDATE pasajero SET telefono='". $this->getTelefono()."',idviaje='". $this->getObjViaje()."' WHERE numDocumento= $dni";
             if ($baseDatos->Iniciar()) {
                 if ($baseDatos->Ejecutar($consultaModificar)) {
                     $resp = true;
@@ -159,9 +149,10 @@ class Pasajero extends Persona{
             } else {
                 $this->setMensajeOperacion($baseDatos->getError());
             }
-                        
-            return $resp;
         }
+                           
+        return $resp;
+    }
     
 
     /**
@@ -172,10 +163,16 @@ class Pasajero extends Persona{
         $resp = false;
         $baseDatos = new BaseDatos();
         $numDni = $this->getDni();
+        $funEliminar = parent::eliminar();
+
         if ($baseDatos->Iniciar()) {
             $consultaBorrar ="DELETE FROM pasajero WHERE numDocumento= $numDni";
+
             if ($baseDatos->Ejecutar($consultaBorrar)) {
-                $resp = true;
+
+                if($funEliminar){
+                    $resp=  true;
+                }
             } else {
                 $this->setMensajeOperacion($baseDatos->getError());
             }
@@ -189,10 +186,9 @@ class Pasajero extends Persona{
 
     public function __toString()
     {
-        return "\n Documento: " . $this->getDni().
-        "\n Nombre: " . $this->getNombre().
-        "\n Apellido: " . $this->getApellido().
-        "\n Telefono: " . $this->getTelefono().
-        "\n ID Viaje: " . $this->getObjViaje();
+        return 
+        parent::__toString().
+        "Telefono: " . $this->getTelefono().
+        "\n ID Viaje: " . $this->getObjViaje(). "\n";
     }
 }
