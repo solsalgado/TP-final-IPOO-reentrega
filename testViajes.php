@@ -11,6 +11,7 @@ $objEmpresa = new Empresa ();
 $objResponsable = new Responsable();
 $objViaje = new Viaje();
 $objPasajero = new Pasajero();
+$objPersona = new Persona();
 
 $salir = false;
 
@@ -187,9 +188,13 @@ while ($salir == false) {
                 echo "Ingrese el apellido del responsable: \n";
                 $apellidoR = trim(fgets(STDIN));
 
+
                 $objResponsable->setNumLicencia($numeroLR);
-                $objResponsable->setNombre($nombreR);
-                $objResponsable->setApellido($apellidoR);
+                $objPersona->Cargar($nombreR, $apellidoR, "");
+
+                /*$objPersona->setNombre($nombreR);
+                $objPersona->setApellido($apellidoR);
+                $objPersona->setDni($dniR);*/
 
                 $respuesta = $objResponsable->Insertar();
 
@@ -660,9 +665,9 @@ while ($salir == false) {
                             echo "★-------------------------------------★". "\n";
                         } else {
                             
-                            $objPasajero->setNombre($nombrePasajero);
-                            $objPasajero->setApellido($apellidoPasajero);
-                            $objPasajero->setDni($dniPasajero);
+                            $objPersona->setNombre($nombrePasajero);
+                            $objPersona->setApellido($apellidoPasajero);
+                            $objPersona->setDni($dniPasajero);
                             $objPasajero->setTelefono($telefonoPasajero);
                             $objPasajero->setObjViaje($IDViajePasajero);
                             $respuesta = $objPasajero->Insertar();
@@ -677,9 +682,9 @@ while ($salir == false) {
                         }
                     } else {
                         
-                        $objPasajero->setNombre($nombrePasajero);
-                        $objPasajero->setApellido($apellidoPasajero);
-                        $objPasajero->setDni($dniPasajero);
+                        $objPersona->setNombre($nombrePasajero);
+                        $objPersona->setApellido($apellidoPasajero);
+                        $objPersona->setDni($dniPasajero);
                         $objPasajero->setTelefono($telefonoPasajero);
                         $objPasajero->setObjViaje($IDViajePasajero);
                         $respuesta = $objPasajero->Insertar();
@@ -764,8 +769,8 @@ while ($salir == false) {
 
                 if ($existePasajero == true) {
 
-                    $objPasajero->setNombre($nombrePasajeroN);
-                    $objPasajero->setApellido($apellidoPasajeroN);
+                    $objPersona->setNombre($nombrePasajeroN);
+                    $objPersona->setApellido($apellidoPasajeroN);
                     $objPasajero->setTelefono($telefonoPasajeroN);
                     $objPasajero->setObjViaje($IDViajePasajeroN);
                     
